@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .image-scale {
+            width: 200px;
+            height: 150px;
+        }
+    </style>
+    <title>Product Search</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Product Search</h1>
+    <form id="search-form">
+        <input type="text" id="product_name" name="product_name" placeholder="Product Name">
+        <input type="text" id="product_category" name="product_category" placeholder="Product Category">
+        <input type="number" id="min_price" name="min_price" placeholder="Min Price">
+        <input type="number" id="max_price" name="max_price" placeholder="Max Price">
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+    $(document).ready(function() {
+        $('#search-form').on('submit', function(event) {
+            event.preventDefault();
+
+            let productName = $('#product_name').val();
+            let productCategory = $('#product_category').val();
+            let minPrice = $('#min_price').val();
+            let maxPrice = $('#max_price').val();
+
+            $.ajax({
+                url: 'http://127.0.0.1:8000/api/search',
+                type: 'GET',
+                data: {
+                    product_name: productName,
+                    product_category: productCategory,
+                    min_price: minPrice,
+                    max_price: maxPrice
+                },
+                success: function(response) {
+                    $('#results').empty();
+
+                    if (response.length > 0) {
+                        response.forEach(function(product) {
+                            $('#results').append(
+                                `<div>
+                                    <h3>${product.product_name}</h3>
+                                    <p>Category: ${product.product_category}</p>
+                                    <p>Price: ${product.product_price}</p>
+                                    <p>Stock: ${product.product_stock}</p>
+                                    <p>Listing Date: ${product.listing_date}</p>
+                                    <img src="http://127.0.0.1:8000/storage/${product.product_image}" alt="${product.product_image}" class="image-scale">
+                                </div>`
+                            );
+                        });
+                    } else {
+                        $('#results').append('<p>No products found.</p>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#results').empty();
+                    if (xhr.status === 401 || xhr.status === 403) {
+                        $('#results').append('<p>Access denied.</p>');
+                    } else {
+                        $('#results').append('<p>Error Occurred.</p>');
+                    }
+                    console.error(xhr, status, error);
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>
